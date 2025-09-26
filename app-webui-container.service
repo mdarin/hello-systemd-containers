@@ -1,0 +1,24 @@
+[Unit]
+Description=App WebUI eClock Alpine Container
+After=network.target
+Wants=network.target
+
+[Service]
+ExecStart=/usr/bin/systemd-nspawn --quiet --keep-unit --boot --link-journal=try-guest --directory=/var/lib/machines/app-webui-eclock-alpine-container --port=tcp:59095:59095
+ExecStop=/usr/bin/machinectl stop app-webui-eclock-alpine-container
+Restart=always
+RestartSec=10
+StartLimitInterval=60
+StartLimitBurst=5
+
+# Ограничение ресурсов
+MemoryMax=512M
+CPUQuota=80%
+
+# Логирование
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=app-webui-container
+
+[Install]
+WantedBy=multi-user.target
