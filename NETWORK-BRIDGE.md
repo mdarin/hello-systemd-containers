@@ -2,6 +2,40 @@
 
 Настройка мостового интерфейса (bridge) — это правильный способ создать единую сеть для контейнеров, хоста и обеспечить им выход в интернет.
 
+<div style="
+    background: #fefce8;
+    border: 1px solid #eab308;
+    border-left: 5px solid #eab308;
+    padding: 20px;
+    margin: 20px 0;
+    border-radius: 0 8px 8px 0;
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+">
+    <span style="
+        font-size: 22px;
+        color: #ca8a04;
+        flex-shrink: 0;
+        background: #fef9c3;
+        padding: 8px;
+        border-radius: 6px;
+        font-weight: bold;
+    ">🚧</span>
+    <div>
+        <strong style="
+            color: #a16207;
+            margin-bottom: 6px;
+            display: block;
+            font-size: 15px;
+            font-family: monospace;
+        ">Bridge со встроенной wlan0 на pi zero не работает. Необходимо искать другие варианты. Я пробую veth и routing iptables<br>Возникает ошибка:</strong>
+        <p style="margin: 0; color: #854d0e; line-height: 1.6; font-size: 14px;">
+            <code style="background: #fef9c3; padding: 2px 6px; border-radius: 3px; color: #854d0e;">The "Error: Device does not allow enslaving to a bridge" occurs because the Raspberry Pi's built-in Wi-Fi chip doesn't support the necessary 4-address mode (WDS) for true Layer 2 bridging. To work around this, you can use alternative methods such as Layer 3 routing with NAT and proxy ARP, purchase a USB Wi-Fi dongle that supports WDS, or switch to a setup where the Pi acts as an Access Point (AP)</code>
+        </p>
+    </div>
+</div>
+
 ## Пошаговая инструкция, как это сделать на Raspberry Pi OS (Debian)
 
 ### Общая схема
