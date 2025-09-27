@@ -103,6 +103,10 @@ passwd
 Запуск с пробросом сети:
 _По умолчанию у контейнера есть только loopback-интерфейс (lo)_. Чтобы дать доступ наружу, используйте --network-veth. Это создаст виртуальную Ethernet-пару между хостом и контейнером.
 
+> [!WARNING]
+> Читай HOST-CONTAINER-NETWORKING.md для более детальной настройки
+> Для примера есть скрипт setup-existing-container-network.sh
+
 ```bash
 sudo systemd-nspawn -b -D /var/lib/machines/app-webui-debian-container --network-veth
 
