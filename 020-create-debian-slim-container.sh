@@ -133,6 +133,7 @@ sudo chmod 755 "$CONTAINER_PATH/var/cache/apt/archives/partial"
 INSTALL_SUCCESS=false
 
 # Пробуем разные версии Debian (в порядке надежности)
+# TODO: здесь можно использовать результаты скрипта проверки доступных версий
 echo "Создание Debian системы..."
 for version in  "bookworm" "stable"; do
     if create_container "$version"; then
