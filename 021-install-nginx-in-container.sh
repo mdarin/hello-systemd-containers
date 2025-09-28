@@ -6,30 +6,33 @@ CONTAINER_PATH="/var/lib/machines/$CONTAINER_NAME"
 
 echo "Запуск контейнера для установки nginx..."
 
-# Сначала проверяем что контейнер существует
-if [ ! -d "$CONTAINER_PATH" ]; then
-    echo "Ошибка: контейнер $CONTAINER_PATH не существует"
-    exit 1
-fi
+# Проверки
+[ ! -d "$CONTAINER_PATH" ] && echo "Ошибка: контейнер не существует" && exit 1
+[ ! -f "$CONTAINER_PATH/install-nginx.sh" ] && echo "Ошибка: скрипт установки не найден" && exit 1
 
-# Удаляем конфликтующие symlinks если они есть
-if [ -L "$CONTAINER_PATH/dev/console" ]; then
-    echo "Удаляем конфликтующий symlink /dev/console..."
-    sudo rm -f "$CONTAINER_PATH/dev/console"
-fi
+# Очистка symlinks
+sudo rm -f "$CONTAINER_PATH/dev/console" 2>/dev/null || true
 
 # Запускаем установку внутри контейнера без --boot и с отключением console
-    # --console=pipe \
-sudo systemd-nspawn \
-    -D "$CONTAINER_PATH" \
-    --resolv-conf=copy-host \
-    /usr/bin/bash /install-nginx.sh
 
-echo "**Nginx успешно установлен в контейнере**"
-echo " "
-echo "📦 **Размер контейнера:** $(sudo du -sh $CONTAINER_PATH | cut -f1)"
-echo " "
-echo "🌐 **Nginx доступен на порту:** 59095"
-echo "🔗 **URL для проверки:** http://localhost:59095"
-echo " "
-echo "🐳 **Контейнер готов к работе!**"
+# Проверяем состояние и запускаем
+if sudo machinectl show "$CONTAINER_NAME" 2>/dev/null | grep -q "State=running"; then
+    echo "✅ Контейнер запущен, выполняем скрипт..."
+    sudo machinectl shell "$CONTAINER_NAME" /usr/bin/bash /install-nginx.sh
+else
+    echo "🔄 Запускаем контейнер для выполнения скрипта..."
+    sudo systemd-nspawn -D "$CONTAINER_PATH" --resolv-conf=copy-host --console=interactive /usr/bin/bash /install-nginx.sh
+fi
+
+# Покажем открытые порты
+ss -tlnp
+echo
+
+echo -e "✅ Nginx успешно установлен в контейнере $CONTAINER_NAME"
+echo -e " "
+echo -e "📦 Размер контейнера: $(sudo du -sh $CONTAINER_PATH | cut -f1)"
+echo -e " "
+echo -e "🌐 Nginx доступен на порту: 59095"
+echo -e "🔗 URL для проверки: http://localhost:59095"
+echo -e " "
+echo -e "🐳 Контейнер готов к работе!"

@@ -1,6 +1,10 @@
 #!/bin/bash
 
 # TODO: Prototype!
+# ВАЖНО! Чтобы сеть заработала необходимо включить форвардинг пакетов!
+# Это принцип динамической настройки сети.
+# Так можно перенастраивать сеть в процессе работы контейнера и хоста
+# Вероятно лучше и не хранить настройки, но каждый раз их выполнять при активации контейнера?
 
 # Однострочные команды для быстрого использования
 # Простая проверка и включение
@@ -25,8 +29,8 @@ else
 fi
 
 # Очищаем старые правила
-iptables -F
-iptables -t nat -F
+sudo iptables -F
+sudo iptables -t nat -F
 
 # Настраиваем интерфейс на хосте
 ip link set ve-app-webuXtIV up
@@ -40,8 +44,13 @@ iptables -A FORWARD -i ve-app-webuXtIV -o wlan0 -j ACCEPT
 iptables -A FORWARD -i wlan0 -o ve-app-webuXtIV -j ACCEPT
 
 # Проброс порта 8080 из локальной сети к контейнеру
-iptables -t nat -A PREROUTING -i wlan0 -p tcp --dport 8080 -j DNAT --to-destination 10.0.0.2:59095
+iptables -t nat -A PREROUTING -i wlan0 -p tcp --dport 8080 -j DNAT --to-destination 10.0.0.2:80
 iptables -A FORWARD -p tcp -d 10.0.0.2 --dport 80 -j ACCEPT
+
+sudo iptables -t nat -A PREROUTING -i wlan0 -p tcp --dport 8080 -j DNAT --to-destination 192.168.47.12:59095
+sudo iptables -A FORWARD -p tcp -d 192.168.47.12 --dport 59095 -j ACCEPT
+
+
 
 # Проброс других портов при необходимости
 # iptables -t nat -A PREROUTING -i wlan0 -p tcp --dport 8081 -j DNAT --to-destination 10.0.0.2:8081
@@ -51,6 +60,23 @@ iptables -A FORWARD -p tcp -d 10.0.0.2 --dport 80 -j ACCEPT
 sudo iptables -t nat -L -n
 echo 
 sudo iptables -L -n
+
+# посмотреть интерфейс в контейнере
+sudo machinectl shell app-webui-debian-container /usr/sbin/ip addr show host0
+
+# Настраиваем ответную часть виртуального интерфейса в контейнере
+sudo machinectl shell app-webui-debian-container /usr/bin/bash << 'EOF'
+ip link set host0 up
+ip addr add 10.0.0.2/24 dev host0
+ip route add default via 10.0.0.1
+echo "nameserver 8.8.8.8" > /etc/resolv.conf
+echo "nameserver 1.1.1.1" >> /etc/resolv.conf
+echo "=== Network configuration ==="
+ip addr show host0
+echo
+echo "=== Testing connectivity ==="
+ping -c 3 10.0.0.1
+EOF
 
 echo "Network setup completed for existing interfaces"
 echo "Host interface: ve-app-webuXtIV (10.0.0.1)"

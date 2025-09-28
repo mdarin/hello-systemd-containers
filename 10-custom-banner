@@ -1,0 +1,68 @@
+#!/bin/bash
+# Сделайте файл исполняемым:
+# chmod +x /etc/update-motd.d/10-custom-banner
+
+# Цвета для вывода
+readonly RED='\033[0;31m'
+readonly GREEN='\033[0;32m'
+readonly YELLOW='\033[1;33m'
+readonly BLUE='\033[0;34m'
+readonly CYAN='\033[0;36m'
+readonly MAGENTA='\033[0;35m'
+readonly NC='\033[0m' # No Color
+
+echo "                                                                                     "
+echo "               @@@@@@@@                                                              "
+echo "            @@@@@@@@@@@@@@@@                                                         "
+echo "         @@@@@@@@       @@@@@@@                                                      "
+echo "       @@@@@@              @@@@@@                                                    "
+echo "      @@@@                   @@@@@                                                   "
+echo "     @@@                      @@@                                                    "
+echo "    @@@           @@@@         @@@        @@         @@       @@@                    "
+echo "    @@           @             @@@        @@         @@                              "
+echo "   @@@          @              @@@    @@@@@@   @@@@  @@  @@    @   @@@@@    @  @@@   "
+echo "    @@         @               @@@  @@@  @@@ @@@  @@ @@@@@@@@ @@@  @   @@@  @@@ @@@  "
+echo "   @@@         @@              @@   @@   @@@ @@   @@@@@    @@ @@@      @@@  @@   @@  "
+echo "    @@          @@            @@    @@    @@ @@@@@@@ @@    @@ @@@ @@@ @@@@  @@   @@  "
+echo "    @@           @@         @@      @@   @@@ @@      @@    @@ @@@ @@   @@@  @@   @@  "
+echo "    @@            @@@@@@@@@@        @@@@@@@@  @@@    @@   @@  @@@ @@@@@@@@  @@   @@  "
+echo "     @@@                              @@  @@    @@@@  @@@@     @    @@  @   @     @  "
+echo "     @@@                                                                             "
+echo "      @@@                                                                            "
+echo "       @@@                                                                           "
+echo "         @@                                                                          "
+echo "           @@                                                                        "
+echo "             @@@                                                                     "
+echo "                                                                                     "
+echo
+echo
+─────────────────────────────────────────────────────────────────────
+   eClock WebUI Container (Debian GNU/Linux 11)
+   
+   Container: app-webui-debian-container
+   Web Server: http://localhost:59095
+   Host: Raspberry Pi ARMv6l
+   
+   Authorized access only! All activities are logged.
+─────────────────────────────────────────────────────────────────────
+
+echo -e "${BLUE}=================================================${NC}"
+echo -e "${GREEN}           ДОБРО ПОЖАЛОВАТЬ НА СЕРВЕР!          ${NC}"
+echo -e "${BLUE}=================================================${NC}"
+echo
+echo -e "${CYAN}╭─ КОМПОНЕНТЫ ПРИЛОЖЕНИЯ ─────────────────────╮${NC}"
+echo -e "  ${MAGENTA}systemd-nspawn${NC} -D /путь/к/контейнеру"
+echo -e "  ${MAGENTA}machinectl${NC} list"
+echo -e "  ${MAGENTA}debootstrap${NC} --arch=armel bullseye /путь http://deb.debian.org/debian/"
+echo -e "${CYAN}╰────────────────────────────────────────╯${NC}"
+echo
+
+echo -e "${CYAN}╭─ СИСТЕМНАЯ ИНФОРМАЦИЯ ─────────────────╮${NC}"
+echo -e "Хост: ${GREEN}$(hostname)${NC}"
+echo -e "ОС: ${GREEN}$(lsb_release -d | cut -f2)${NC}"
+echo -e "Architecture: ${GREEN}$(uname -m)${NC}"
+echo -e "Время работы: ${GREEN}$(uptime -p)${NC}"
+echo -e "Память: ${GREEN}$(free -h | awk '/Mem:/ {print $3 " / " $2}')${NC}"
+echo -e "Диск: ${GREEN}$(df -h / | awk 'NR==2 {print $3 " / " $2}')${NC}"
+echo -e "${BLUE}╰────────────────────────────────────────╯${NC}"
+echo

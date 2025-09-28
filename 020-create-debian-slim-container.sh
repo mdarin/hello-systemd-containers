@@ -11,9 +11,45 @@ readonly CYAN='\033[0;36m'
 readonly MAGENTA='\033[0;35m'
 readonly NC='\033[0m' # No Color
 
+# Конфигурация
 CONTAINER_NAME="app-webui-debian-container"
 CONTAINER_PATH="/var/lib/machines/$CONTAINER_NAME"
 CACHE_PATH="/var/cache/apt/archives/partial"
+#CONTAINER_NAME="${1:-debian-container}" # TODO: использовать это для общего случая
+CONTAINER_DIR="/var/lib/machines/$CONTAINER_NAME"
+DISTRO="${2:-bookworm}"
+ARCH="${3:-}"  # armel, armhf, amd64, etc
+MIRROR="http://deb.debian.org/debian/"
+
+# Функция для генерации случайного имени
+generate_container_name() {
+    local prefix="${1:-debian}"
+    echo "${prefix}-$(date +%s | tail -c 4)"
+}
+
+# Если имя не указано, генерируем случайное
+if [[ -z "$1" ]]; then
+    CONTAINER_NAME=$(generate_container_name)
+    CONTAINER_DIR="/var/lib/machines/$CONTAINER_NAME"
+    echo "Имя контейнера не указано, используем: $CONTAINER_NAME"
+fi
+
+# Проверяем, не существует ли контейнер
+if [[ -d "$CONTAINER_DIR" ]]; then
+    echo "Ошибка: Контейнер '$CONTAINER_NAME' уже существует в $CONTAINER_DIR"
+    exit 1
+fi
+
+# Проверяем, не совпадает ли имя с hostname хоста
+HOST_HOSTNAME=$(hostname)
+if [[ "$CONTAINER_NAME" == "$HOST_HOSTNAME" ]]; then
+    echo "Предупреждение: Имя контейнера совпадает с hostname хоста"
+    read -p "Продолжить? (y/N): " -n 1 -r
+    echo
+    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+        exit 1
+    fi
+fi
 
 echo -e "${MAGENTA}Создание Debian контейнера для ARMv6l (Raspberry Pi 1/Zero)...${NC}"
 echo
@@ -36,6 +72,8 @@ clean_all() {
 }
 
 # Упрощенная проверка контейнера
+# Использование:
+# check_container_simple "/path/to/container"
 check_container_simple() {
     local container_path="$1"
     
@@ -72,8 +110,7 @@ check_container_simple() {
     fi
 }
 
-# Использование:
-# check_container_simple "/path/to/container"
+
 
 # Функция создания контейнера с проверкой
 create_container() {
@@ -86,6 +123,27 @@ create_container() {
         sudo rm -rf "$CONTAINER_PATH/var/cache/apt/archives/partial/*"
     fi
     
+    # TODO: ----begin
+    # # Параметры debootstrap
+    # DEBOOTSTRAP_OPTS=(
+    #     "--hostname=$CONTAINER_NAME"
+    #     "--variant=minbase"
+    #     "--include=systemd,systemd-sysv,dbus"
+    # )
+
+    # # Добавляем архитектуру если указана
+    # if [[ -n "$ARCH" ]]; then
+    #     DEBOOTSTRAP_OPTS+=("--arch=$ARCH")
+    # fi
+
+    # # Создаем контейнер
+    # sudo debootstrap \
+    #     "${DEBOOTSTRAP_OPTS[@]}" \
+    #     "$DISTRO" \
+    #     "$CONTAINER_DIR" \
+    #     "$MIRROR"
+    # ----- end
+
     if sudo debootstrap \
         --arch=armel \
         --variant=minbase \
@@ -187,17 +245,12 @@ CONTAINER_HOSTNAME="app-webui-debian-container"
 apt update
 apt upgrade -y
 
-# Устанавливаем systemd и nginx avahi
+# Устанавливаем systemd и nginx
 apt install -y systemd nginx 
 
-#avahi-daemon avahi-utils
-
-# Запусk Avahi:
-# systemctl enable avahi-daemon
-# systemctl start avahi-daemon
-
-
 # =========== Пользовательские настройки эта часть изменяется =======
+# Здесь устанавливается приложение пользователя.
+# Nginx и преветсвтенная страница, это наглядный пример.
 
 # Создаем директории для nginx
 mkdir -p /run/nginx
@@ -270,23 +323,25 @@ CHECK_EOF
 
 chmod +x /usr/local/bin/check-nginx.sh
 
+# Процедура развёртывания прилжения пользователя здесь звершается.
 # ================================================================
 
 # Чистим кеш
 apt autoremove -y
 apt clean
 
-echo "Установка завершена для ARMv6!"
+echo "Установка приложения завершена для ARMv6!"
 EOF
 
 echo "Оптимизация размера контейнера..."
 sudo rm -rf "$CONTAINER_PATH"/usr/share/doc/*
 sudo rm -rf "$CONTAINER_PATH"/usr/share/man/*
 
-# cat /tmp/install-nginx.sh
+echo -e "${MAGENTA}Создание Debian контейнера для ARMv6l (Raspberry Pi 1/Zero) выполнено${NC}"
 
 sudo mv /tmp/install-nginx.sh "$CONTAINER_PATH/install-nginx.sh"
 sudo chmod +x "$CONTAINER_PATH/install-nginx.sh"
 
 echo "Скрипт установки подготовлен"
 echo "Для завершения выполните: sudo ./install-nginx-in-container.sh"
+echo
